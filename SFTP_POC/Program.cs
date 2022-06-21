@@ -1,5 +1,6 @@
 ﻿
 using Renci.SshNet;
+using System.Text;
 
 string hostName = "newdemosftp100.blob.core.windows.net";
 string userName = "newdemosftp100.naveen";
@@ -9,10 +10,30 @@ using (SftpClient client = new SftpClient(new PasswordConnectionInfo(hostName,us
 {
     client.Connect();
 
-    string sourceFile = @"C:\Users\navee\Downloads\sample.txt";
-    using (Stream stream = File.OpenRead(sourceFile))
+    string tempPath = Path.Combine(Path.GetTempPath() + "test.conf");
+    // Create a new file     
+    using (FileStream fs = File.Create(tempPath))
     {
-        client.UploadFile(stream, Path.GetFileName(sourceFile), x =>
+        // Add some text to file    
+        Byte[] title = new UTF8Encoding(true).GetBytes("Hello,");
+        fs.Write(title, 0, title.Length);
+        byte[] author = new UTF8Encoding(true).GetBytes("  Naveen Kumar");
+        fs.Write(author, 0, author.Length);
+    }
+
+    // Open the stream and read it back.    
+    using (StreamReader sr = File.OpenText(tempPath))
+    {
+        string s = "";
+        while ((s = sr.ReadLine()) != null)
+        {
+            Console.WriteLine(s);
+        }
+    }
+    //string sourceFile = @"C:\Users\navee\Downloads\sample.txt";
+    using (Stream stream = File.OpenRead(tempPath))
+    {
+        client.UploadFile(stream, Path.GetFileName(tempPath), x =>
         {
             Console.WriteLine("Updated!!!");
         });
